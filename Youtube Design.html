@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+
+class User {
+    constructor(id, username, email) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.channel = new Channel(`${username}-channel`, this);
+        this.watchHistory = [];
+    }
+
+    subscribeTo(channel) {
+        channel.addSubscriber(this);
+    }
+
+    likeVideo(video) {
+        video.addLike(this);
+    }
+
+    commentOnVideo(video, text) {
+        const comment = new Comment(this, text);
+        video.addComment(comment);
+    }
+
+    watchVideo(video) {
+        this.watchHistory.push(video);
+        video.play();
+    }
+}
+
+class Channel {
+    constructor(id, owner) {
+        this.id = id;
+        this.owner = owner;
+        this.videos = [];
+        this.subscribers = [];
+    }
+
+    uploadVideo(title, description) {
+        const video = new Video(title, description, this);
+        this.videos.push(video);
+        this.notifySubscribers(video);
+        return video;
+    }
+
+    addSubscriber(user) {
+        if (!this.subscribers.includes(user)) {
+            this.subscribers.push(user);
+        }
+    }
+
+    notifySubscribers(video) {
+        this.subscribers.forEach(user => {
+            console.log(`Notification to ${user.username}: New Video uploaded - ${video.title}`);
+        });
+    }
+}
+
+class Video {
+    constructor(title, description, channel) {
+        this.id = `video-${Math.random().toString(36).substr(2, 9)}`;
+        this.title = title;
+        this.description = description;
+        this.uploadedBy = channel;
+        this.uploadDate = new Date();
+        this.views = 0;
+        this.likes = new Set();
+        this.comments = [];
+    }
+
+    play() {
+        this.views += 1;
+        console.log(`Playing video: ${this.title}`);
+    }
+
+    addLike(user) {
+        this.likes.add(user.id);
+    }
+
+    addComment(comment) {
+        this.comments.push(comment);
+    }
+}
+
+class Comment {
+    constructor(author, text) {
+        this.author = author;
+        this.text = text;
+        this.timestamp = new Date();
+    }
+}
+
+class SearchService {
+    static searchByTitle(videos, keyword) {
+        return videos.filter(video => video.title.toLowerCase().includes(keyword.toLowerCase()));
+    }
+
+    static searchByChannel(channels, channelName) {
+        return channels.find(ch => ch.id.toLowerCase() === channelName.toLowerCase());
+    }
+}
+
+
+const himanshu = new User(1, "Himanshu Arya", "himanshu@gmail.com");
+const kavita = new User(2, "Kavita", "kavita@gmail.com");
+
+kavita.subscribeTo(himanshu.channel);
+
+const newVideo = himanshu.channel.uploadVideo("How to cook Pasta", "Simple Pasta recipe");
+
+kavita.watchVideo(newVideo);
+kavita.likeVideo(newVideo);
+kavita.commentOnVideo(newVideo, "Thanks! That was helpful!");
+
+const results = SearchService.searchByTitle([newVideo], "Pasta");
+console.log("Search results:", results.map(v => v.title));
+
+
+
+
+
+
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
